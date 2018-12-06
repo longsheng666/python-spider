@@ -1,4 +1,4 @@
-利用requests库，单线程爬取airbnb，存入csv文件
+#利用requests库，单线程爬取airbnb，存入csv文件
 
 解决疑难点：
 1、with open(file_name,'w',encoding='utf_8_sig')as file:
