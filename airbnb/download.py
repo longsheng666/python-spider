@@ -42,6 +42,6 @@ class Download(object):
             params.update({'price_min':price_min})
         if price_max!='':
             params.update({'price_max': price_max})
-        response=requests.get(url,params=params,headers=headers)
+        response=requests.get(url,params=params,headers=headers,timeout=10)
         return response.json()
 
