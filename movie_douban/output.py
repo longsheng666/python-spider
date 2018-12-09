@@ -12,7 +12,7 @@ class Output(object):
 
     def output(self,table):
         #创建数据库douban，如果已存在，则不创建
-        db=pymysql.connect(host='localhost',user='root',password='123456789',port=3306)
+        db=pymysql.connect(host='localhost',user='root',password='123456',port=3306)
         cursor = db.cursor()
         cursor.execute('CREATE DATABASE IF NOT EXISTS douban DEFAULT CHARACTER SET utf8')
 
