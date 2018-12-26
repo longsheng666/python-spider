@@ -27,7 +27,6 @@ class LianjiaItem(scrapy.Item):
     tag = scrapy.Field()
     price = scrapy.Field()
     unitprice = scrapy.Field()
-    referer = scrapy.Field()
 
 
 
