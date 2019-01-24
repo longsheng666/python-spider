@@ -15,12 +15,9 @@ class SpiderSpider(scrapy.Spider):
 
     def parse(self, response):
         item = LianjiaItem()
-        first_url='https://sz.lianjia.com'
-        soup=BeautifulSoup(response.text,'html.parser')
-        #解析新url
-        last_url=soup.find_all('a',href=re.compile(r'^/ershoufang/\w+qu/(p\d/)?$'))
-        #用BeautifulSoup解析html
-        datas=soup.find_all('div',class_="info clear")
+        soup = BeautifulSoup(response.text, 'html.parser')
+        # 用BeautifulSoup解析html
+        datas = soup.find_all('div', class_="info clear")
         for data in datas:
 #            item['referer']=response.url
             item['room_url']=data.find('a',href=re.compile(r'https://sz.lianjia.com/ershoufang/'))['href']
@@ -53,23 +50,41 @@ class SpiderSpider(scrapy.Spider):
             item['unitprice']=re.search('\d+',data.find('div',class_="unitPrice").get_text()).group()
             yield item
         #发送新的url给调度器
-        if last_url:
-            for url in last_url:
-                if re.search(r'/ershoufang/\w+qu/$',url['href']):
-                    full_url=first_url+url['href']
-                    yield scrapy.Request(url=full_url, callback=self.parse)
-                elif re.search(r'\(\d+', url.get_text()):
-                    number = re.search(r'\(\d+', url.get_text()).group().replace('(', '')
-                    if int(number)%30 ==0:
-                        n=int(int(number)/30)
-                    else :
-                        n=int(int(number)/30)+1
-                    one_url = first_url + url['href']
-                    if n<=100:
-                        for i in range(1,n+1):
-                            full_url=one_url.replace('qu/p','qu/pg'+str(i)+'p')
-                            yield scrapy.Request(url=full_url, callback=self.parse)
-                    else:
-                        for i in range(1,101):
-                            full_url=one_url.replace('qu/p','qu/pg'+str(i)+'p')
-                            yield scrapy.Request(url=full_url, callback=self.parse)
+        #获得各个区域的url(第一层url)
+        first_url = 'https://sz.lianjia.com'
+        area_urls=soup.find_all('a', href=re.compile(r'^/ershoufang/\w+/$'), title=re.compile(r'在售二手房'))
+        if area_urls:
+            for area_url in area_urls:
+                full_url = first_url + area_url['href']
+                yield scrapy.Request(url=full_url, callback=self.parse)
+        # 解析翻页url
+        #只在第一层url下解析翻页url
+        if re.search(r'/ershoufang/\w+/$',response.url):
+            last_url = soup.find_all('a', href=re.compile(r'^/ershoufang/\w+/p\d/$'))
+            if last_url:
+                for url in last_url:
+                    if re.search(r'\(\d+', url.get_text()):
+                        number = re.search(r'\(\d+', url.get_text()).group().replace('(', '')
+                        if int(number) % 30 == 0:
+                            n = int(int(number) / 30)
+                        else:
+                            n = int(int(number) / 30) + 1
+                        one_url = first_url + url['href']
+                        if n <= 100:
+                            if re.search(r'/p[a-z]',one_url):
+                                for i in range(1, n + 1):
+                                    full_url = one_url.replace('/p', '/pg' + str(i) + 'p').replace('/pg' + str(i) + 'p', '/p',1)
+                                    yield scrapy.Request(url=full_url, callback=self.parse)
+                            else:
+                                for i in range(1, n + 1):
+                                    full_url = one_url.replace('/p','/pg'+str(i)+'p')
+                                    yield scrapy.Request(url=full_url, callback=self.parse)
+                        else:
+                            if re.search(r'/p[a-z]',one_url):
+                                for i in range(1,101):
+                                    full_url = one_url.replace('/p', '/pg' + str(i) + 'p').replace('/pg' + str(i) + 'p', '/p',1)
+                                    yield scrapy.Request(url=full_url, callback=self.parse)
+                            else:
+                                for i in range(1,101):
+                                    full_url = one_url.replace('/p','/pg'+str(i)+'p')
+                                    yield scrapy.Request(url=full_url, callback=self.parse)
