@@ -3,7 +3,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 import time
-from github1.jingdong import parser,output
+from jingdong import parser,output
 
 class Spider(object):
     def __init__(self):
